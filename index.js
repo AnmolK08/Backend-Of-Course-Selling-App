@@ -12,6 +12,8 @@ app.use('/api/v1/user' , userRouter);
 app.use('/api/v1/course' , courseRouter);
 app.use('/api/v1/admin' , adminRouter);
 
+mongoose.connect()
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
