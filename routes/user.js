@@ -1,8 +1,9 @@
 const { Router } = require("express");
 const userRouter = Router();
-const { userModel } = require("../db");
+const { userModel, purchaseModel, courseModel } = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { userMiddleware } = require("../Middlewares/user")
 
 // Define JWT secret key
 const JWT_USER_PASS = process.env.JWT_USER_PASS;
@@ -66,6 +67,29 @@ userRouter.post("/signin", async (req, res) => {
       username: user.username,
       email: user.email,
     },
+  });
+});
+
+userRouter.get("/purchases", userMiddleware, async function (req, res) {
+  const userId = req.userId;
+
+  const purchases = await purchaseModel.find({
+    userId,
+  });
+
+  let purchasedCourseIds = [];
+
+  for (let i = 0; i < purchases.length; i++) {
+    purchasedCourseIds.push(purchases[i].courseId);
+  }
+
+  const coursesData = await courseModel.find({
+    _id: { $in: purchasedCourseIds },
+  });
+
+  res.json({
+    purchases,
+    coursesData,
   });
 });
 
