@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const JWT_ADMIN_PASS = process.env.JWT_ADMIN_PASS;
 
 function adminMiddleware(req, res, next) {
     const token = req.headers.token;

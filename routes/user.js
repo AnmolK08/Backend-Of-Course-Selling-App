@@ -4,8 +4,19 @@ const { userModel } = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// Define JWT secret key
+const JWT_USER_PASS = process.env.JWT_USER_PASS;
+
 userRouter.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
+
+  // Check if user already exists
+  const existingUser = await userModel.findOne({ email });
+  if (existingUser) {
+    return res.status(409).json({
+      message: "User already exists",
+    });
+  }
 
   // Hash the password
   const hashPassword = await bcrypt.hash(password, 10);
@@ -16,7 +27,7 @@ userRouter.post("/signup", async (req, res) => {
     password: hashPassword,
   });
 
-  res.json({
+  res.status(201).json({
     message: "User created successfully",
     user: {
       username,
@@ -43,8 +54,8 @@ userRouter.post("/signin", async (req, res) => {
   }
 
   // Generate JWT token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+  const token = jwt.sign({ id: user._id }, JWT_USER_PASS, {
+    expiresIn: "1h",
   });
 
   res.json({

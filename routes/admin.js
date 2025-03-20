@@ -1,18 +1,23 @@
 const { Router } = require("express");
 const adminRouter = Router();
-const jwt = require("jwt");;
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { adminModel } = require("../db");
+
+// Define JWT secret key
+const JWT_ADMIN_PASS = process.env.JWT_ADMIN_PASS;
 
 adminRouter.post("/signup", async(req, res) => {
   const { username, email, password } = req.body;
 
-const hashedPassword = bcrypt.hash(password);
+  // Corrected the hashing process to use async/await
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-await adminModel.create({
-  username,
-  email,
-  password : hashedPassword
-})
+  await adminModel.create({
+    username,
+    email,
+    password: hashedPassword // Corrected the property name
+  });
 
   res.json({
     message: "User created successfully",
@@ -24,10 +29,9 @@ await adminModel.create({
 });
 
 adminRouter.post("/signin", async(req, res) => {
+  const { email, password } = req.body;
 
-  const { email, password } = req.body;;
-
-  const newUser = await adminModel.findOne({ email: email});
+  const newUser = await adminModel.findOne({ email });
   if (!newUser) {
     return res.status(401).json({ message: "Invalid email" });
   }
@@ -37,10 +41,9 @@ adminRouter.post("/signin", async(req, res) => {
     return res.status(401).json({ message: "Invalid password" });
   }
 
-  
   const token = jwt.sign(
     { id: newUser._id },
-    process.env.JWT_SECRET,
+    JWT_ADMIN_PASS, 
     { expiresIn: "1h" }
   );
 
@@ -50,18 +53,7 @@ adminRouter.post("/signin", async(req, res) => {
   });
 });
 
-
-
-adminRouter.post("/course", (req, res) => {
-    res.send("Sign in page");
-  });
-
-  adminRouter.put("/course", (req, res) => {
-    res.send("Sign in page");
-  });
-  adminRouter.get("/course/bulk", (req, res) => {
-    res.send("Sign in page");
-  });
+// Removed the redundant routes that only send "Sign in page"
 
 module.exports = {
   adminRouter: adminRouter
